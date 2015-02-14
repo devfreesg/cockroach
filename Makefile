@@ -27,13 +27,7 @@ STATIC := $(STATIC)
 
 RUN  := run
 GOPATH  := $(CURDIR)/../../../..:$(CURDIR)/_vendor
-# Exposes protoc.
-PATH := $(CURDIR)/_vendor/usr/bin:$(PATH)
-# Expose protobuf.
-export CPLUS_INCLUDE_PATH := $(CURDIR)/_vendor/usr/include:$(CPLUS_INCLUDE_PATH)
-export LIBRARY_PATH := $(CURDIR)/_vendor/usr/lib:$(LIBRARY_PATH)
 
-ROACH_PROTO := proto
 SQL_PARSER  := sql/parser
 
 # TODO(pmattis): Figure out where to clear the CGO_* variables when
@@ -54,7 +48,7 @@ endif
 
 all: build test
 
-auxiliary: storage/engine/engine.pc roach_proto sqlparser
+auxiliary: storage/engine/engine.pc sqlparser
 
 build: auxiliary
 	cd _vendor/src/github.com/coreos/etcd/raft ; $(GO) install $(GOFLAGS)
@@ -62,9 +56,6 @@ build: auxiliary
 
 storage/engine/engine.pc: storage/engine/engine.pc.in
 	sed -e "s,@PWD@,$(CURDIR),g" < $^ > $@
-
-roach_proto:
-	make -C $(ROACH_PROTO) static_lib
 
 sqlparser:
 	make -C $(SQL_PARSER)
@@ -113,7 +104,6 @@ clean:
 	$(GO) clean -i -r ./...
 	find . -name '*.test' -type f -exec rm -f {} \;
 	rm -f storage/engine/engine.pc
-	make -C $(ROACH_PROTO) clean
 	make -C $(SQL_PARSER) clean
 
 # The gopath target outputs the GOPATH that should be used for building this
